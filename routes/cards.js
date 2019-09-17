@@ -4,6 +4,6 @@ const cards = require('../data/cards.json');
 // экспортируем его
 module.exports = router;
 
-router.get('/cards', (req, res) => {
+router.get('/', (req, res) => {
   res.send(cards);
 });

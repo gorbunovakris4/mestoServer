@@ -9,14 +9,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const usersRouter = require('./routes/users');
 
-app.use(usersRouter);
+app.use('/users', usersRouter);
 
 const cardsRouter = require('./routes/cards');
 
-app.use(cardsRouter);
+app.use('/cards', cardsRouter);
 
-app.get('/cards', (req, res) => {
-  res.sendFile(path.join(__dirname, 'data/cards.json'));
+app.use('*', (req, res) => {
+  res.status = 404;
+  res.send({ message: 'Запрашиваемый ресурс не найден' });
 });
 
 app.listen(PORT, () => {
