@@ -7,9 +7,13 @@ const { PORT = 3000 } = process.env;
 const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/users', (req, res) => {
-  res.sendFile(path.join(__dirname, 'data/users.json'));
-});
+const usersRouter = require('./routes/users');
+
+app.use(usersRouter);
+
+const cardsRouter = require('./routes/cards');
+
+app.use(cardsRouter);
 
 app.get('/cards', (req, res) => {
   res.sendFile(path.join(__dirname, 'data/cards.json'));

@@ -1,3 +1,4 @@
+/* eslint-disable prefer-destructuring */
 // создадим express router
 const router = require('express').Router();
 const users = require('../data/users.json');
@@ -9,11 +10,12 @@ router.get('/users', (req, res) => {
 });
 
 router.get('/users/:id', (req, res) => {
-  // eslint-disable-next-line no-undef
-  if (!users[id]) {
-    res.send({ error: 'Такого пользователя нет' });
+  const id = req.params.id;
+  // eslint-disable-next-line no-underscore-dangle
+  const user = users.find((elem) => elem._id === id);
+  if (!user) {
+    res.send({ message: 'Нет пользователя с таким id' });
   } else {
-    // eslint-disable-next-line no-undef
-    res.send(users[id]);
+    res.send(user);
   }
 });
