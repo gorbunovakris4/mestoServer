@@ -14,6 +14,7 @@ router.get('/:id', (req, res) => {
   // eslint-disable-next-line no-underscore-dangle
   const user = users.find((elem) => elem._id === id);
   if (!user) {
+    res.status(404);
     res.send({ message: 'Нет пользователя с таким id' });
   } else {
     res.send(user);
