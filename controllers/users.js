@@ -12,7 +12,7 @@ module.exports.getUser = (req, res) => {
       if (user.length > 0) res.send({ data: user });
       else res.status(404).send({ message: 'нет пользователя с таким id' });
     })
-    .catch(() => res.status(404).send({ message: 'нет пользователя с таким id' }));
+    .catch(() => res.status(500).send({ message: 'нет пользователя с таким id' }));
 };
 
 module.exports.createUser = (req, res) => {
