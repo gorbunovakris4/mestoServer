@@ -8,6 +8,8 @@ module.exports.getCards = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
+  const currentCard = Card.findById(req.params.cardId);
+  if (currentCard.owner._id !== req.params._id) { res.status(403).send({ message: 'you can`t delete this card' }); }
   Card.findByIdAndRemove(req.params.cardId)
     .then((card) => res.send({ data: card }))
     .catch((err) => res.status(500).send({ message: err.message }));
