@@ -34,22 +34,22 @@ const userSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator: (link) => link.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.([-a-zA-Z0-9@:%_+.~#?&//=]*)([-a-zA-Z0-9@:%_+.~#?&//=]*)/g),
+      message: (link) => `${link.value} is not a valid link`,
     },
-    message: (link) => `${link.value} is not a valid link`,
   },
 });
 
 // eslint-disable-next-line func-names
-userSchema.statics.findUserByCredentials = function (_email, password) {
-  return this.findOne({ email: _email }).select('+password')
+userSchema.statics.findUserByCredentials = function (email, password) {
+  return this.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
+        throw Promise.reject(new Error('Неправильные почта или пароль'));
       }
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            return Promise.reject(new Error('Неправильные почта или пароль'));
+            throw Promise.reject(new Error('Неправильные почта или пароль'));
           }
           return user;
         });
