@@ -5,16 +5,13 @@ const User = require('../models/user');
 const { NODE_ENV, JWT_SECRET } = process.env;
 
 module.exports.createUser = (req, res) => {
-  const {
-    _name, _about, _avatar, _email,
-  } = req.body;
   bcrypt.hash(req.body.password, 10)
     .then((hash) => User.create({
-      email: _email,
+      email: req.body.email,
       password: hash,
-      name: _name,
-      about: _about,
-      avatar: _avatar,
+      name: req.body.name,
+      about: req.body.about,
+      avatar: req.body.avatar,
     }))
     .then((user) => {
       res.status(201).send({
@@ -32,13 +29,12 @@ module.exports.createUser = (req, res) => {
 
 module.exports.login = (req, res) => {
   const { email, password } = req.body;
-
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const _id = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
       res.cookie('jwt', _id, {
         httpOnly: true,
-        maxAge: '7d',
+        maxAge: 604800,
       }).end();
     })
     .catch((err) => {
