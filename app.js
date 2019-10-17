@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const auth = require('./middlewares/auth');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
@@ -12,10 +13,16 @@ const { PORT = 3000 } = process.env;
 
 const { login, createUser } = require('./controllers/users');
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+});
+
 const app = express();
 
 app.use(bodyParser.json());
 app.use(helmet());
+app.use(limiter);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
