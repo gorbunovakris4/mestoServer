@@ -1,35 +1,43 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const auth = require('./middlewares/auth');
+const usersRouter = require('./routes/users');
+const cardsRouter = require('./routes/cards');
 
 const { PORT = 3000 } = process.env;
+
+const { login, createUser } = require('./controllers/users');
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+});
 
 const app = express();
 
 app.use(bodyParser.json());
+app.use(helmet());
+app.use(limiter);
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
   useCreateIndex: true,
   useFindAndModify: false,
+  useUnifiedTopology: true,
 });
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '5d920940f1fef96c9caf439e',
-  };
+app.post('/signin', login);
+app.post('/signup', createUser);
 
-  next();
-});
-
-const usersRouter = require('./routes/users');
-
-app.use('/users', usersRouter);
-
-const cardsRouter = require('./routes/cards');
-
-app.use('/cards', cardsRouter);
+app.use('/users', auth, usersRouter);
+app.use('/cards', auth, cardsRouter);
 
 app.use('*', (req, res) => {
   res.status(404);
