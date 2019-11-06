@@ -1,10 +1,13 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const NotFoundError = require('../errors/not-found-err');
+const BadRequestError = require('../errors/bad-request-err');
+const AuthorizationError = require('../errors/authorization-err');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
-function createUser(req, res) {
+function createUser(req, res, next) {
   bcrypt.hash(req.body.password, 10)
     .then((hash) => User.create({
       email: req.body.email,
@@ -22,12 +25,13 @@ function createUser(req, res) {
         avatar: user.avatar,
       });
     })
-    .catch((err) => {
-      res.status(400).send(err);
-    });
+    .catch(() => {
+      throw new BadRequestError('Введенные данные не прошли валидацию');
+    })
+    .catch(next);
 }
 
-function login(req, res) {
+function login(req, res, next) {
   const { email, password } = req.body;
   return User.findUserByCredentials(email, password)
     .then((user) => {
@@ -39,27 +43,30 @@ function login(req, res) {
         sameSite: true,
       }).end();
     })
-    .catch((err) => {
-      res.status(401).send({ message: err.message });
-    });
+    .catch(() => {
+      throw new AuthorizationError('Неправильные почта или логин');
+    })
+    .catch(next);
 }
 
-function getUsers(req, res) {
+function getUsers(req, res, next) {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch(next);
 }
 
-function getUser(req, res) {
+function getUser(req, res, next) {
   User.find({ _id: req.params.userId })
     .then((user) => {
-      if (user.length > 0) res.send({ data: user });
-      else res.status(404).send({ message: 'нет пользователя с таким id' });
+      if (!user) {
+        throw new NotFoundError('Нет пользователя с таким id');
+      }
+      res.send(user);
     })
-    .catch(() => res.status(500).send({ message: 'нет пользователя с таким id' }));
+    .catch(next);
 }
 
-function updateProfile(req, res) {
+function updateProfile(req, res, next) {
   const { newName, newAbout } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
@@ -71,10 +78,13 @@ function updateProfile(req, res) {
     },
   )
     .then((user) => res.send({ data: user }))
-    .catch(() => res.status(400).send({ message: 'Данные не прошли валидацию.' }));
+    .catch(() => {
+      throw new BadRequestError('Введенные данные не прошли валидацию');
+    })
+    .catch(next);
 }
 
-function updateAvatar(req, res) {
+function updateAvatar(req, res, next) {
   const { newAvatar } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
@@ -86,7 +96,10 @@ function updateAvatar(req, res) {
     },
   )
     .then((user) => res.send({ data: user }))
-    .catch(() => res.status(400).send({ message: 'Данные не прошли валидацию.' }));
+    .catch(() => {
+      throw new BadRequestError('Введенные данные не прошли валидацию');
+    })
+    .catch(next);
 }
 
 module.exports = {
