@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const auth = require('./middlewares/auth');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
 const { celebrate, Joi, errors } = require('./node_modules/celebrate');
@@ -27,6 +28,8 @@ app.use(helmet());
 app.use(limiter);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+app.use(requestLogger);
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
@@ -58,6 +61,8 @@ app.use('/cards', auth, cardsRouter);
 app.use('*', (req, res, next) => {
   next(new NotFoundError('Page not found'));
 });
+
+app.use(errorLogger);
 
 app.use(errors());
 
