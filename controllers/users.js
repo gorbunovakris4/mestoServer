@@ -26,27 +26,28 @@ function createUser(req, res, next) {
       });
     })
     .catch(() => {
-      throw new BadRequestError('Введенные данные не прошли валидацию');
-    })
-    .catch(next);
+      next(new BadRequestError('Введенные данные не прошли валидацию'));
+    });
 }
 
 function login(req, res, next) {
   const { email, password } = req.body;
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      if (!user) { res.status(401).send({ message: 'not found' }); }
-      const _id = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
-      res.cookie('jwt', _id, {
-        httpOnly: true,
-        maxAge: 604800,
-        sameSite: true,
-      }).end();
+      if (!user) {
+        throw new AuthorizationError('Неправильные почта или пароль');
+      } else {
+        const _id = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
+        res.cookie('jwt', _id, {
+          httpOnly: true,
+          maxAge: 604800,
+          sameSite: true,
+        }).end();
+      }
     })
     .catch(() => {
-      throw new AuthorizationError('Неправильные почта или логин');
-    })
-    .catch(next);
+      next(new AuthorizationError('Неправильные почта или пароль'));
+    });
 }
 
 function getUsers(req, res, next) {
@@ -58,7 +59,7 @@ function getUsers(req, res, next) {
 function getUser(req, res, next) {
   User.find({ _id: req.params.userId })
     .then((user) => {
-      if (!user) {
+      if (user.length === 0) {
         throw new NotFoundError('Нет пользователя с таким id');
       }
       res.send(user);

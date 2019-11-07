@@ -27,7 +27,6 @@ app.use(helmet());
 app.use(limiter);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(errors);
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
@@ -43,17 +42,15 @@ app.post('/signin', celebrate({
   }),
 }), login);
 
-app.post('/signup', createUser);
-
-// app.post('/signup', celebrate({
-//   body: Joi.object().keys({
-//     email: Joi.string().required().email(),
-//     password: Joi.string().required(),
-//     name: Joi.string().required().min(2).max(30),
-//     about: Joi.string().required().min(2).max(30),
-//     avatar: Joi.string().required(),
-//   }),
-// }), createUser);
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required(),
+    name: Joi.string().required().min(2).max(30),
+    about: Joi.string().required().min(2).max(30),
+    avatar: Joi.string().required(),
+  }),
+}), createUser);
 
 app.use('/users', auth, usersRouter);
 app.use('/cards', auth, cardsRouter);
@@ -61,6 +58,8 @@ app.use('/cards', auth, cardsRouter);
 app.use('*', (req, res, next) => {
   next(new NotFoundError('Page not found'));
 });
+
+app.use(errors());
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
