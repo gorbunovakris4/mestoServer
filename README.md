@@ -10,4 +10,5 @@ run: npm start
 run with hot-reload: npm run dev
 
 ### Web Page
-to use go to https:/mestoserver.tk/
+to use go to 
+https://mestoserver.tk/
